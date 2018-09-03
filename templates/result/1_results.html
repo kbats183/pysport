@@ -54,7 +54,7 @@
                     penalty_laps: result.penalty_laps,
                     result: result.result,
                     resultMsec: result.result_msec,
-                    diff: toHHMMSS(result.diff),
+                    diff: race.settings.result_processing_mode === 'scores' ? result.diff_scores : toHHMMSS(result.diff),
                     place: result.place,
                     status: result.status,
                     scores: result.scores,
@@ -163,7 +163,13 @@
                 if (b.status !== 1) {
                     return -1
                 }
-                return a.resultMsec - b.resultMsec
+                if (a.place < 1) {
+                    return 1
+                }
+                if (b.place < 1) {
+                    return -1
+                }
+                return a.place - b.place
             }
         });
         var index = 0;
@@ -193,8 +199,8 @@
     function getRankingByGroup(group) {
         var rankingBlock = document.createElement('span');
         var ranking = group.ranking;
-        if (ranking && ranking.is_active) {
-            var text = 'Квалификационный уровень (баллы): ' + ranking.rank_scores;
+        if (ranking && ranking.is_active && ranking.rank_scores > 0) {
+            var text = 'Квалификационный уровень (баллы): ' + ranking.rank_scores.toFixed(0);
             rankingBlock.appendChild(document.createTextNode(text));
 
             for (var _i = 0; _i < ranking.rank.length; _i++) {
@@ -237,7 +243,7 @@
             {key: 'bib', title: 'Номер', size: 6},
             {key: 'penalty_time', title: 'Штраф', size: 9, active: false},
             {key: 'penalty_laps', title: 'Штраф', size: 9, active: false},
-            {key: 'result', title: 'Результат', size: 15},
+            {key: 'result', title: 'Результат', size: 16},
             {key: 'diff', title: 'Отставание', size: 11},
             {key: 'speed', title: 'Темп', size: 12, active: false},
             {key: 'place_show', title: 'Место', size: 6},
@@ -307,7 +313,14 @@
             }
             var titleBlock = document.createElement('h2');
             titleBlock.id = group.name;
-            titleBlock.appendChild(document.createTextNode(group.name));
+            var groupTitle = group.name;
+            if (group.course && group.course.controls && group.course.controls.length){
+                groupTitle += ', ' + group.course.controls.length + ' КП';
+            }
+            if (group.course && group.course.length){
+                groupTitle += ', ' + group.course.length / 1000 + ' км';
+            }
+            titleBlock.appendChild(document.createTextNode(groupTitle));
             resultBlock.appendChild(titleBlock);
             if (store.showLinkForGroups) {
                 resultBlock.appendChild(getGroupsBlockElement(race));

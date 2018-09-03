@@ -71,6 +71,13 @@ def sound_dir(*paths):
     return os.path.join(SOUND_DIR, *paths)
 
 
+SCRIPT_DIR = base_dir('scripts')
+
+
+def script_dir(*paths):
+    return os.path.join(SCRIPT_DIR, *paths)
+
+
 ICON = icon_dir('sportorg.ico')
 
 CONFIG_INI = data_dir('config.ini')
@@ -82,6 +89,8 @@ NAMES_FILE = base_dir('names.txt')
 REGIONS_FILE = base_dir('regions.txt')
 
 STATUS_COMMENTS_FILE = base_dir('status_comments.txt')
+
+RANKING_SCORE_FILE = base_dir('ranking.txt')
 
 DIRS = [
     IMG_DIR,

@@ -236,7 +236,7 @@ msgid "Configuration"
 msgstr "Настройка"
 
 msgid "Rank"
-msgstr "Ранг (ориентирование)"
+msgstr "Ранг"
 
 msgid "Max place"
 msgstr "Макс. место"
@@ -1245,3 +1245,9 @@ msgstr "Длина,м"
 
 msgid "Penalty legs title"
 msgstr "Штр.круги"
+
+msgid "points"
+msgstr "очк."
+
+msgid "Credit"
+msgstr "Отсечка"
