@@ -95,6 +95,9 @@ class AbstractSportOrgMemoryModel(QAbstractTableModel):
 
     def set_filter_for_column(self, column_num, filter_regexp):
         self.filter.update({column_num: re.escape(filter_regexp)})
+        
+    def set_filter_for_function(self, function, filter_regexp):
+        self.filter.update({function: filter_regexp})
 
     def apply_filter(self):
         # get initial list and filter it
@@ -106,8 +109,11 @@ class AbstractSportOrgMemoryModel(QAbstractTableModel):
             check = re.compile(check_regexp)
             # current_array = list(filter(lambda x:  check.match(self.get_item(x, column)), current_array))
             i = 0
-            while i < len(current_array):
-                value = self.get_item(current_array[i], column)
+            while i < len(current_array): 
+                if callable(column):
+                    value = column(current_array[i])                       
+                else:
+                    value = self.get_item(current_array[i], column)
                 if not check.match(value):
                     self.filter_backup.append(current_array.pop(i))
                     i -= 1

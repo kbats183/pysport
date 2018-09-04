@@ -755,6 +755,15 @@ class Result:
     def is_manual(self):
         return self.system_type == SystemType.MANUAL
 
+    def get_status_for_filter(self):
+        if self.status == ResultStatus.OK:
+            return _("OK")
+        elif self.status == ResultStatus.DID_NOT_START:
+            return _("DNS")
+        elif self.status == ResultStatus.DID_NOT_FINISH:
+            return _("DNF")
+        else:
+            return _("DSQ")
 
 class ResultManual(Result):
     system_type = SystemType.MANUAL
@@ -1304,7 +1313,18 @@ class Race(Model):
             if i.person is person:
                 return i
         return None
-
+    
+    def result_status_filter(self, current_array_line):
+        if isinstance(current_array_line, Person):
+            for i in self.results:
+                if i.person is current_array_line:
+                    return i.get_status_for_filter()
+            return _("DNR")
+        elif current_array_line.system_type==SystemType.MANUAL or current_array_line.system_type==SystemType.SPORTIDENT:
+            return current_array_line.get_status_for_filter()
+        else:
+            return ''
+    
     def find_course(self, result):
         # first get course by number
         person = result.person

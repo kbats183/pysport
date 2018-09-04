@@ -337,6 +337,9 @@ msgstr "НЕ СТАРТ."
 msgid "DNF"
 msgstr "СОШЕЛ"
 
+msgid "DNR"
+msgstr "НЕ ФИНИШИРОВАЛ"
+
 msgid "Overtime"
 msgstr "ПРЕВЫШЕНО КВ"
 

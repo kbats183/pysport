@@ -11,6 +11,8 @@ from sportorg.gui.utils.custom_controls import AdvComboBox
 from sportorg.language import _
 from sportorg.models.constant import get_race_teams, get_race_groups
 
+from sportorg.models.memory import race
+
 
 class DialogFilter(QDialog):
 
@@ -45,6 +47,13 @@ class DialogFilter(QDialog):
         self.team_combo.addItem('')
         self.team_combo.addItems(get_race_teams())
         self.layout.addRow(self.team_label, self.team_combo)
+        
+        self.status_label = QtWidgets.QLabel(self)
+
+        self.status_combo = AdvComboBox(self)
+        self.status_combo.addItem('')
+        self.status_combo.addItems([_("DNR"),_("DNS"),_("OK"),_("DSQ"),_("DNF")])
+        self.layout.addRow(self.status_label, self.status_combo)
 
         button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         self.button_ok = button_box.button(QDialogButtonBox.Ok)
@@ -76,6 +85,7 @@ class DialogFilter(QDialog):
 
                 proxy_model.set_filter_for_column(group_column, self.group_combo.currentText())
                 proxy_model.set_filter_for_column(team_column, self.team_combo.currentText())
+                proxy_model.set_filter_for_function(race().result_status_filter, self.status_combo.currentText())
 
                 proxy_model.apply_filter()
 
@@ -95,5 +105,6 @@ class DialogFilter(QDialog):
         self.setWindowTitle(_("Filter Dialog"))
         self.group_label.setText(_("Group"))
         self.team_label.setText(_("Team"))
+        self.status_label.setText(_("Status"))
         self.button_ok.setText(_('OK'))
         self.button_cancel.setText(_('Cancel'))
