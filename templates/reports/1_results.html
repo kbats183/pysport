@@ -58,6 +58,7 @@
                     diff: race.settings.result_processing_mode === 'scores' ? result.diff_scores : toHHMMSS(result.diff),
                     place: result.place,
                     status: result.status,
+                    sscores_have: result.scores, //sscores
                     scores: result.scores,
                     place_show: result.person.is_out_of_competition ? 'в/к' : result.place === 0 ? '' : result.place === -1 ? '' : result.place,
                     is_out_of_competition: result.person.is_out_of_competition,
@@ -157,6 +158,10 @@
 
             } else {
                 if (a.status !== 1 && b.status !== 1) {
+                    if (STATUS_PRIORITY.indexOf(a.status) == STATUS_PRIORITY.indexOf(b.status)){
+                    //alert(b.sscores_have+' '+a.sscores_have);
+                        return b.sscores_have - a.sscores_have;
+                    }
                     return STATUS_PRIORITY.indexOf(a.status) - STATUS_PRIORITY.indexOf(b.status);
                 }
                 if (a.status !== 1) {

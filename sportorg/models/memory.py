@@ -172,6 +172,10 @@ class CourseControl(Model):
         char = tmp[0]
         if char == '*' or char == '%':
             return '0'
+        #ssore
+        if char == '@':
+            return '0'
+
         res = ''
 
         index = 0
@@ -218,6 +222,7 @@ class Course(Model):
         self.count_person = 0
         self.count_group = 0
         self.corridor = 0
+        self.sscores = False
 
     def __repr__(self):
         return 'Course {}'.format(self.name)
@@ -269,6 +274,38 @@ class Course(Model):
             control = CourseControl()
             control.update_data(item)
             self.controls.append(control)
+
+    #sscore
+    def is_sscores(self):
+        for item in self.controls:
+            template = item['code']
+            if len(template) and template[0] == '@':#sscore
+                list_exists = False
+                list_contains = []
+                ind_begin = template.find('(')
+                ind_end = template.find(')')
+                if ind_begin > 0 and ind_end > 0:
+                    list_exists = True
+                    # any control from the list e.g. '%(31,32,33)'
+                    arr = template[ind_begin + 1:ind_end].split(',')
+                    list_contains = arr
+
+                if list_exists:
+                    if (ind_begin>1):
+                        scores_count = template[1:ind_begin]
+                        if scores_count.isdigit():
+                            scores_count = int(scores_count)
+                            self.sscores = True
+                            return (scores_count,list_contains)
+                else:
+                    if (len(template)>1):
+                        scores_count = template[1:]
+                        if scores_count.isdigit():
+                            scores_count = int(scores_count)
+                            self.sscores = True
+                            return (scores_count,False)
+        self.sscores = False
+        return False
 
 
 class Group(Model):
@@ -447,6 +484,8 @@ class Result:
         self.penalty_laps = 0  # count of penalty legs (marked route)
         self.place = 0
         self.scores = 0
+        self.sscores_need = 0 #sscores
+        self.sscores_have = 0 #sscores
         self.assigned_rank = Qualification.NOT_QUALIFIED
         self.diff = None  # type: OTime  # readonly
         self.diff_scores = 0  # readonly
@@ -531,6 +570,7 @@ class Result:
 
             'speed': self.speed,  # readonly
             'scores': self.scores,  # readonly
+            'sscores_have': self.sscores_have,  # readonly ##scores
             'created_at': self.created_at,  # readonly
             'result': self.get_result(),  # readonly
             'result_relay': self.get_result_relay(),
@@ -866,6 +906,27 @@ class ResultSportident(Result):
         for i in self.splits:
             i.is_correct = False
 
+        #sscore
+        sscores_prm = course.is_sscores()
+        if (course.sscores):
+            from sportorg.models.result.result_checker import ResultChecker
+            user_array = []
+            ret = 0
+            for cur_split in self.splits:
+                code = str(cur_split.code)
+                if (sscores_prm[1] == False or (code in sscores_prm[1])) and (code not in user_array):
+                    user_array.append(code)
+                    ret += ResultChecker.get_control_score(code)
+                    cur_split.is_correct = True
+            print('Выбор с очками', ret,'/',sscores_prm[0])
+            self.sscores_have = ret
+            self.scores = ret
+            self.sscores_need = sscores_prm[0]
+            if ret >= sscores_prm[0]:
+                return True
+            else:
+                return False
+
         for i in range(len(self.splits)):
             try:
                 split = self.splits[i]
@@ -982,6 +1043,31 @@ class ResultSportident(Result):
 
         return is_changed
 
+    # sscores _copy
+    def get_result(self):
+        if not self.sscores_need and not self.is_status_ok():
+            if self.status_comment:
+                return self.status_comment
+            return self.status.get_title()
+
+        if not self.person:
+            return ''
+
+        ret = ''
+        if race().get_setting('result_processing_mode', 'time') == 'scores':
+            ret += str(self.scores) + ' ' + _('points') + ' '
+
+        #sscores
+        if self.sscores_need:
+            ret = str(self.sscores_have)+'/'+str(self.sscores_need)+' '
+            if not self.is_status_ok():
+                if self.status_comment:
+                    return ret + str(self.status_comment)
+                return ret + str(self.status.get_title())
+
+        time_accuracy = race().get_setting('time_accuracy', 0)
+        ret += self.get_result_otime().to_str(time_accuracy)
+        return ret
 
 
 class ResultSFR(ResultSportident):
